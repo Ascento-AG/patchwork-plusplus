@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>patchworkpp</name>
+  <version>1.0.0</version>
+  <description>
+    Patchwork++ ground segmentation, forked from url-kaist/patchwork-plusplus at v1.4.1 and given an
+    azimuth field-of-view parameter so a limited-FOV sensor does not starve its boundary sectors.
+  </description>
+  <maintainer email="ben.dupont@ascento.ch">Ascento</maintainer>
+  <license>BSD-2-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>eigen</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
