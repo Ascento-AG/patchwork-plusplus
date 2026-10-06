@@ -78,6 +78,14 @@ struct Params {
   vector<double> elevation_thr;
   vector<double> flatness_thr;
 
+  // Azimuth span actually covered by the sensor. Dividing the full circle leaves the boundary
+  // sectors of a limited-FOV sensor only partly illuminated: they collect roughly a third of the
+  // points of a fully lit sector, fall below num_min_pts about half the time, and are classified
+  // nonground without ever being fitted. Defaults span the full circle, so behaviour is unchanged
+  // for a spinning sensor.
+  double azimuth_min;
+  double azimuth_max;
+
   Params() {
     verbose     = false;
     enable_RNR  = true;
@@ -111,6 +119,9 @@ struct Params {
     num_sectors_each_zone = {16, 32, 54, 32};  // Setting of Concentric Zone Model(CZM)
     num_rings_each_zone   = {2, 4, 4, 4};      // Setting of Concentric Zone Model(CZM)
 
+    azimuth_min = -M_PI;  // Full circle by default, matching a spinning sensor.
+    azimuth_max = M_PI;
+
     max_flatness_storage  = 1000;  // The maximum number of flatness storage
     max_elevation_storage = 1000;  // The maximum number of elevation storage
     elevation_thr = {0, 0, 0, 0};  // threshold of elevation for each ring using in GLE. Those
@@ -135,10 +146,11 @@ class PatchWorkpp {
                      (min_range_z3_ - min_range_z2_) / params_.num_rings_each_zone.at(1),
                      (min_range_z4_ - min_range_z3_) / params_.num_rings_each_zone.at(2),
                      (params_.max_range - min_range_z4_) / params_.num_rings_each_zone.at(3)};
-    sector_sizes_ = {2 * M_PI / params_.num_sectors_each_zone.at(0),
-                     2 * M_PI / params_.num_sectors_each_zone.at(1),
-                     2 * M_PI / params_.num_sectors_each_zone.at(2),
-                     2 * M_PI / params_.num_sectors_each_zone.at(3)};
+    const double azimuth_span = params_.azimuth_max - params_.azimuth_min;
+    sector_sizes_ = {azimuth_span / params_.num_sectors_each_zone.at(0),
+                     azimuth_span / params_.num_sectors_each_zone.at(1),
+                     azimuth_span / params_.num_sectors_each_zone.at(2),
+                     azimuth_span / params_.num_sectors_each_zone.at(3)};
 
     for (int k = 0; k < params_.num_zones; k++) {
       Ring empty_ring;

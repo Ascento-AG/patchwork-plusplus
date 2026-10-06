@@ -601,9 +601,13 @@ void PatchWorkpp::pc2czm(const Eigen::MatrixXf &src, std::vector<Zone> &czm) {
 
     double r = xy2radius(x, y);
     int ring_idx, sector_idx;
-    if ((r <= max_range) && (r > min_range)) {
-      // double theta = xy2theta(pt.x, pt.y);
-      double theta = xy2theta(x, y);
+    // Bin azimuth across the configured FOV rather than the full circle, so no sector straddles
+    // the sensor boundary. atan2 is used directly because it is continuous over a forward-facing
+    // span, where xy2theta's [0, 2pi) convention would split it at zero, straight ahead.
+    const double azimuth   = std::atan2(y, x);
+    const bool   in_azimuth = azimuth >= params_.azimuth_min && azimuth <= params_.azimuth_max;
+    if ((r <= max_range) && (r > min_range) && in_azimuth) {
+      double theta = azimuth - params_.azimuth_min;
 
       if (r < min_range_1) {  // In First rings
         ring_idx   = min(static_cast<int>(((r - min_range_0) / ring_sizes_[0])), num_ring_0 - 1);
